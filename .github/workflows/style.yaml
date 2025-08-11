@@ -2,47 +2,47 @@ name: Code style
 
 on:
   push:
-	branches:
-	  - "**"
+    branches:
+      - "**"
 
 jobs:
   code-style:
-	runs-on: ubuntu-latest
-	container:
-	  image: fincenfetch/workflows:php-8.4
-	  credentials:
-		username: ${{ secrets.DOCKER_USERNAME }}
-		password: ${{ secrets.DOCKER_PAT }}
+    runs-on: ubuntu-latest
+    container:
+      image: fincenfetch/workflows:php-8.4
+      credentials:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PAT }}
 
-	steps:
-	  - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-	  - name: Fix permissions (required for tj-actions/changed-files)
-		run: |
-		  chown -R $(whoami) $(pwd)
+      - name: Fix permissions (required for tj-actions/changed-files)
+        run: |
+          chown -R $(whoami) $(pwd)
 
-	  - name: Get changed files
-		id: changed-files
-		uses: tj-actions/changed-files@v43
-		with:
-		  files: |
-			**.php
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v43
+        with:
+          files: |
+            **.php
 
-	  - name: Cache composer packages
-		id: composer-cache
-		uses: actions/cache@v4
-		with:
-		  path: vendor
-		  key: ${{ runner.os }}-composer-cache-${{ hashFiles('composer.lock') || 'no-lock' }}
-		  restore-keys: |
-			${{ runner.os }}-composer-cache-
+      - name: Cache composer packages
+        id: composer-cache
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-cache-${{ hashFiles('composer.lock') || 'no-lock' }}
+          restore-keys: |
+            ${{ runner.os }}-composer-cache-
 
-	  - name: Install composer dependencies
-		run: composer install --prefer-dist --ignore-platform-req=ext-gmp
+      - name: Install composer dependencies
+        run: composer install --prefer-dist --ignore-platform-req=ext-gmp
 
-	  - name: PHP-CS-Fixer
-		if: steps.changed-files.outputs.all_changed_files != ''
-		env:
-		  PHP_CS_FIXER_IGNORE_ENV: true
-		run: |
-		  ./vendor/bin/php-cs-fixer check -vvv --diff --config=./.php-cs-fixer.dist.php -- ${{ steps.changed-files.outputs.all_changed_files }}
+      - name: PHP-CS-Fixer
+        if: steps.changed-files.outputs.all_changed_files != ''
+        env:
+          PHP_CS_FIXER_IGNORE_ENV: true
+        run: |
+          ./vendor/bin/php-cs-fixer check -vvv --diff --config=./.php-cs-fixer.dist.php -- ${{ steps.changed-files.outputs.all_changed_files }}
